@@ -3,11 +3,11 @@
  * 管理当前会话、消息列表、历史会话等状态
  */
 
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Message, HistoryItem } from '@/api/chat/types.ts'
-import { sendMessage, getHistories, getHistoryDetail } from '@/api/chat/chat.ts'
-import { SSEConnection } from '@/utils/sse.ts'
+import { defineStore } from "pinia"
+import { computed, ref } from "vue"
+import type { HistoryItem, Message } from "@/api/chat/types.ts"
+import { getHistories, getHistoryDetail, sendMessage } from "@/api/chat/chat.ts"
+import { SSEConnection } from "@/utils/sse.ts"
 
 /**
  * 生成唯一的会话 ID
@@ -91,7 +91,7 @@ export const useChatStore = defineStore('chat', () => {
           onMessageStart: (event) => {
             console.log('Message start:', event)
             if (streamingMessage.value) {
-              streamingMessage.value.id = event.messageId
+              streamingMessage.value.id = event.message_id
             }
           },
           onMessageContent: (event) => {
@@ -153,8 +153,7 @@ export const useChatStore = defineStore('chat', () => {
    */
   async function loadHistories() {
     try {
-      const data = await getHistories()
-      histories.value = data
+      histories.value = await getHistories()
     } catch (error) {
       console.error('Failed to load histories:', error)
     }
