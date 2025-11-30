@@ -14,10 +14,11 @@
     </div>
 
     <!-- 播放器 -->
-    <PlayerBar v-model:visible="playerBarVisible" />
+    <PlayerBar v-model:visible="playerBarVisible" @change-playlist-visible="playlistVisible => showFloatBall = !playlistVisible" />
 
     <!-- 悬浮球 -->
     <FloatBall
+        v-if="showFloatBall"
         :menu-content-visible="isHistoryOpen || chatDialogOpen"
         @open-chat="handleOpenChat"
         @open-history="handleOpenHistory"
@@ -59,6 +60,7 @@ const router = useRouter()
 const sidebarCollapsed = ref(false)
 const currentMenu = ref('now-playing')
 const playerBarVisible = ref(false)
+const showFloatBall = ref(true)
 
 // 两个浮层互斥
 const chatDialogOpen = ref(false)

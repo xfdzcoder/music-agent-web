@@ -6,7 +6,7 @@
 import { defineStore } from "pinia"
 import { computed, ref } from "vue"
 import type { HistoryItem, Message } from "@/api/chat/types.ts"
-import { getHistories, getHistoryDetail, sendMessage } from "@/api/chat/chat.ts"
+import { getHistories, getHistoryDetail, sendMessage } from "@/api/chat"
 import { SSEConnection } from "@/utils/sse.ts"
 
 /**

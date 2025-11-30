@@ -13,8 +13,8 @@
         <div class="cover-wrapper">
           <img
               ref="imgRef"
-              :src="currentSong.cover"
-              :alt="currentSong.title"
+              :src="currentMusic?.pictures[0]"
+              :alt="currentMusic?.title"
               crossorigin="anonymous"
               @load="handleImageLoad"
           />
@@ -24,11 +24,11 @@
 
       <div class="right-content">
         <div class="song-info-section">
-          <h1 class="song-title">{{ currentSong.title }}</h1>
+          <h1 class="song-title">{{ currentMusic?.title }}</h1>
           <div class="song-meta">
-            <span class="song-artist">{{ currentSong.artist }}</span>
+            <span class="song-artist">{{ currentMusic?.artist.join(", ") }}</span>
             <span class="divider">·</span>
-            <span class="song-album">{{ currentSong.album }}</span>
+            <span class="song-album">{{ currentMusic?.album }}</span>
           </div>
         </div>
 
@@ -36,13 +36,13 @@
           <div class="lyrics-scroll" ref="lyricsScrollRef">
             <div class="lyric-spacer"></div>
             <div
-                v-for="(line, index) in lyrics"
+                v-for="(lyric, index) in resolvedLyrics"
                 :key="index"
                 class="lyric-line"
                 :class="{ 'lyric-active': index === currentLyricIndex }"
-                @click="scrollToLyric(index)"
+                :ref="el => lyricRefs[index] = el"
             >
-              {{ line.text }}
+              {{ lyric.text }}
             </div>
             <div class="lyric-spacer"></div>
           </div>
@@ -53,13 +53,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onMounted, watch, nextTick } from "vue"
 import { FastAverageColor } from "fast-average-color"
 import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
 import { adjustBrightness } from "@/utils/color.ts"
+import { useMusicStore } from "@/stores/music.ts"
 
 // ================= 状态管理 =================
+const musicStore = useMusicStore()
+const { currentMusic, currentMusicTimeMs } = storeToRefs(musicStore)
+const { refreshPlaylist } = musicStore
+
 const colorStore = useColor()
 const { color } = storeToRefs(colorStore)
 const { changeColor } = colorStore
@@ -78,7 +83,7 @@ const handleImageLoad = async() => {
   try {
     const color = await fac.getColorAsync(imgRef.value, {
       algorithm: "dominant",
-      ignoredColor: [255, 255, 255, 255, 0, 0, 0, 255] // 忽略纯白和纯黑
+      ignoredColor: [255, 255, 255, 255, 0, 0, 0, 255],
     })
     changeColor(color.hex)
   } catch (e) {
@@ -86,47 +91,80 @@ const handleImageLoad = async() => {
   }
 }
 
-// ================= 业务数据 (保持不变) =================
-interface LyricLine {
-  time : number
-  text : string
+
+type Lyric = {
+  time: number
+  text: string
 }
+const resolvedLyrics = computed<Lyric[]>(() => {
+  if (! currentMusic.value?.lyrics) {
+    return [{ time: 0, text: "暂无歌词" }]
+  }
 
-const currentLyricIndex = ref(1)
+  const result: Lyric[] = []
+  const timeReg = /\[(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?]/g
+
+  for (const line of currentMusic.value?.lyrics.split("\n")) {
+    if (! line.trim()) continue
+
+    const times = [...line.matchAll(timeReg)]
+    if (times.length === 0) continue
+
+    // 去掉时间标签后的歌词内容
+    const text = line.replace(timeReg, "").trim() || ""
+    if (!text) continue
+
+    for (const match of times) {
+      const min = parseInt(match[1] ?? "0")
+      const sec = parseInt(match[2] ?? "0")
+      const ms = match[3] ? parseInt(match[3].padEnd(3, "0")) : 0 // 补足毫秒位
+
+      const time = min * 60 * 1000 + sec * 1000 + ms
+
+      result.push({ time, text })
+    }
+  }
+
+  result.sort((a, b) => a.time - b.time)
+  return result
+})
+const currentLyricIndex = computed<number>((): number => {
+  if (! resolvedLyrics?.value || resolvedLyrics?.value?.length === 0) {
+    return 0
+  }
+
+  for (let i = resolvedLyrics.value.length - 1; i >= 0; i--) {
+    const lyricTime = resolvedLyrics.value[i]?.time ?? 0
+    if (currentMusicTimeMs.value >= lyricTime) {
+      return i
+    }
+  }
+
+  return 0
+})
 const lyricsScrollRef = ref<HTMLDivElement>()
+const lyricRefs = ref<(HTMLDivElement | null)[]>([])
+// 监听索引变化，滚动到当前行
+watch(currentLyricIndex, async (newIndex: number) => {
+  await nextTick() // 等待 DOM 更新
+  const container = lyricsScrollRef.value
+  const currentEl = lyricRefs.value[newIndex]
 
-const currentSong = ref({
-  title: "Cruel Summer",
-  artist: "Taylor Swift",
-  album: "Lover",
-  cover: "https://picsum.photos/800/800",
+  if (container && currentEl) {
+    // 方法1: scrollTop 滚动到中心
+    const containerHeight = container.clientHeight
+    const lyricHeight = currentEl.offsetHeight
+    const offsetTop = currentEl.offsetTop
+    container.scrollTop = offsetTop - containerHeight / 2 + lyricHeight / 2
+
+    // 方法2: 或直接用 scrollIntoView
+    // currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 })
 
-const lyrics = ref<LyricLine[]>([
-  { time: 0, text: "🎵" },
-  { time: 5, text: "Fever dream high in the quiet of the night" },
-  { time: 10, text: "You know that I caught it" },
-  { time: 15, text: "Bad, bad boy" },
-  { time: 20, text: "Shiny toy with a price" },
-  { time: 25, text: "You know that I bought it" },
-  { time: 30, text: "Killing me slow, out the window" },
-  { time: 35, text: "I'm always waiting for you to be waiting below" },
-  { time: 40, text: "Devils roll the dice, angels roll their eyes" },
-  { time: 45, text: "What doesn't kill me makes me want you more" },
-  { time: 50, text: "And it's new, the shape of your body" },
-  { time: 55, text: "It's blue, the feeling I've got" },
-  { time: 60, text: "And it's ooh, whoa, oh" },
-  { time: 65, text: "It's a cruel summer" },
-  { time: 70, text: "It's cool, that's what I tell 'em" },
-  { time: 75, text: "No rules, in breakable heaven" },
-  { time: 80, text: "But ooh, whoa, oh" },
-  { time: 85, text: "It's a cruel summer" },
-  { time: 90, text: "With you" },
-])
-
-const scrollToLyric = (index : number) => {
-  currentLyricIndex.value = index
-}
+onMounted(() => {
+  refreshPlaylist()
+})
 </script>
 
 <style scoped>

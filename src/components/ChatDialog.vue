@@ -65,7 +65,7 @@ const emptyStateStyle = computed(() => {
   const lightColor = adjustBrightness(mainColor, 60)
   // 将 Hex 转 RGB 用于阴影
   const hexToRgb = (hex : string) => {
-    const result : RegExpExecArray | null = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
     return result ? `${ parseInt(result[1], 16) }, ${ parseInt(result[2], 16) }, ${ parseInt(result[3], 16) }` : "255,255,255"
   }
 

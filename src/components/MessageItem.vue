@@ -20,7 +20,6 @@ import type { Message } from '@/api/chat/types.ts'
 import { useColor } from '@/stores/color'
 import { storeToRefs } from 'pinia'
 import { adjustBrightness } from '@/utils/color'
-import { formatTime } from "@/utils/date.ts"
 
 const props = defineProps<{ message: Message }>()
 
@@ -40,7 +39,7 @@ const itemStyle = computed(() => {
   }
 
   const mainRgb = hexToRgb(mainColor)
-  // const darkRgb = hexToRgb(darkColor)
+  const darkRgb = hexToRgb(darkColor)
 
   return {
     // User: 渐变
@@ -61,7 +60,15 @@ const itemStyle = computed(() => {
 const md = new MarkdownIt({ html: true, linkify: true, breaks: true })
 const renderedContent = computed(() => md.render(props.message.content || ''))
 
-
+function formatTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
+  return date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
 </script>
 
 <style scoped>
