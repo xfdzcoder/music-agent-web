@@ -5,6 +5,7 @@
         '--bg-color': color,
         '--bg-dark': themeDarkColor
       }"
+      @click="playAudioElement"
   >
     <div class="background-overlay"></div>
 
@@ -63,7 +64,7 @@ import { useMusicStore } from "@/stores/music.ts"
 // ================= 状态管理 =================
 const musicStore = useMusicStore()
 const { currentMusic, currentMusicTimeMs } = storeToRefs(musicStore)
-const { refreshPlaylist } = musicStore
+const { refreshPlaylist, doPlayAudio } = musicStore
 
 const colorStore = useColor()
 const { color } = storeToRefs(colorStore)
@@ -165,6 +166,11 @@ watch(currentLyricIndex, async (newIndex: number) => {
 onMounted(() => {
   refreshPlaylist()
 })
+
+
+function playAudioElement() {
+  doPlayAudio()
+}
 </script>
 
 <style scoped>

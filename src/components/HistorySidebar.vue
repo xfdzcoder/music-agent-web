@@ -72,7 +72,7 @@ const listRef = ref<HTMLElement | null>(null)
 
 // 内部状态（组件自己维护）
 // const histories = ref<HistoryItem[]>([])
-// const loading = ref(false)
+const loading = ref(false)
 const currentThreadId = ref<string | null>(null)
 
 const colorStore = useColor()

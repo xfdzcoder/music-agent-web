@@ -23,6 +23,8 @@ export interface PlayState {
   music: MusicInfo,
   device: Device
   position_ms: number
+  playlist: MusicInfo[]
+  index: number
 }
 
 export type PlayMode = "single" | "loop" | "order";

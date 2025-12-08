@@ -1,7 +1,7 @@
 <template>
   <Transition name="slide-up">
     <div
-        v-if="true"
+        v-if="visible"
         class="player-bar"
         :style="playerStyle"
         @mouseenter="handleMouseEnter"
@@ -20,15 +20,15 @@
         </div>
 
         <!-- 播放控制 -->
-        <PlayControl />
+        <PlayControl/>
 
         <!-- 音频频谱可视化 -->
         <div class="visualizer-container">
           <canvas ref="visualizerCanvas" class="visualizer"></canvas>
         </div>
 
-        <Volume />
-        <Playlist />
+        <Volume/>
+        <Playlist @change-playlist-visible="playlistVisible => emit('changePlaylistVisible', playlistVisible)"/>
 
       </div>
     </div>
@@ -51,14 +51,28 @@ import Volume from "@/components/Volume.vue"
 import Playlist from "@/components/Playlist.vue"
 import PlayControl from "@/components/PlayControl.vue"
 
-defineProps<{ visible: boolean }>()
-const emit = defineEmits<{ "update:visible": [value: boolean] }>()
+defineProps<{
+  visible: boolean
+}>()
+const emit = defineEmits<{
+  "updateVisible": [value: boolean]
+  "changePlaylistVisible": [playlistVisible: boolean]
+}>()
 
 const colorStore = useColor()
 const { color } = storeToRefs(colorStore)
 
 const musicStore = useMusicStore()
-const { currentMusic, volume, isPlaying } = storeToRefs(musicStore)
+const {
+  currentMusic,
+  volume,
+  isPlaying
+} = storeToRefs(musicStore)
+const {
+  initStateTimer,
+  clearStateTimer,
+  setAudio
+} = musicStore
 
 const visualizerCanvas = ref<HTMLCanvasElement | null>(null)
 
@@ -79,10 +93,13 @@ function initAudioPlayer() {
   try {
     // 创建音频元素
     audioElement = new Audio()
-    audioElement.volume = volume.value / 100
+    audioElement.volume = 1
 
     // 初始化音频上下文和分析器
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+
+    setAudio(audioElement, audioContext)
+
     analyser = audioContext?.createAnalyser()
     analyser.fftSize = BAR_COUNT * 2 // FFT大小是柱状条数量的2倍
 
@@ -151,22 +168,23 @@ function drawVisualizer() {
 }
 
 
-
-
-
 let hideTimer: number | null = null
+
 function handleTriggerEnter() {
   clearHideTimer()
-  emit("update:visible", true)
+  emit("updateVisible", true)
 }
+
 function handleMouseEnter() {
   clearHideTimer()
 }
+
 function handleMouseLeave() {
   hideTimer = window.setTimeout(() => {
-    emit("update:visible", false)
+    emit("updateVisible", false)
   }, 1000)
 }
+
 function clearHideTimer() {
   if (hideTimer) {
     clearTimeout(hideTimer)
@@ -195,26 +213,10 @@ watch(currentMusic, (newMusic) => {
   }
 })
 
-watch(isPlaying, (isPlay) => {
-  if (!audioElement) return
-  console.log('watch(isPlaying', isPlay)
-  if (isPlay) {
-    if (audioContext && audioContext.state === "suspended") {
-      audioContext.resume()
-    }
-    audioElement.play()
-        .catch(err => {
-          console.log(err)
-        })
-  } else {
-    audioElement.pause()
-  }
-})
-
-
 // 生命周期钩子
 onMounted(() => {
   initAudioPlayer()
+  initStateTimer()
 })
 
 onUnmounted(() => {
@@ -229,6 +231,7 @@ onUnmounted(() => {
   if (audioContext) {
     audioContext.close()
   }
+  clearStateTimer()
 })
 
 // ------------------ 主题色样式计算 ------------------
@@ -238,7 +241,11 @@ function hexToRgb(hex: string) {
   const r = parseInt(h.substring(0, 2), 16) || 0
   const g = parseInt(h.substring(2, 4), 16) || 0
   const b = parseInt(h.substring(4, 6), 16) || 0
-  return { r, g, b }
+  return {
+    r,
+    g,
+    b
+  }
 }
 
 const playerStyle = computed(() => {

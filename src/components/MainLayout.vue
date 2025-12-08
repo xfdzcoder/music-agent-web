@@ -14,7 +14,11 @@
     </div>
 
     <!-- 播放器 -->
-    <PlayerBar v-model:visible="playerBarVisible" @change-playlist-visible="playlistVisible => showFloatBall = !playlistVisible" />
+    <PlayerBar
+        v-model:visible="playerBarVisible"
+        @update-visible="visible => playerBarVisible = visible"
+        @change-playlist-visible="onPlaylistVisibleChange"
+    />
 
     <!-- 悬浮球 -->
     <FloatBall
@@ -100,6 +104,10 @@ function handleSelectHistory(threadId: string) {
   nextTick(() => {
     // chatDialogRef.value?.focus()
   })
+}
+
+function onPlaylistVisibleChange(playlistVisible: boolean) {
+  showFloatBall.value = !playlistVisible
 }
 </script>
 

@@ -17,7 +17,8 @@
             class="volume-slider"
             min="0"
             max="100"
-            v-model="volume"
+            :value="volume"
+            @change="onVolumeChange"
             orient="vertical"
         />
       </div>
@@ -30,14 +31,22 @@ import { adjustBrightness } from "@/utils/color.ts"
 import { computed, ref } from "vue"
 import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
-// import { useMusicStore } from "@/stores/music.ts"
+import { useMusicStore } from "@/stores/music.ts"
 
 const showVolumeSlider = ref(false)
-const isMuted = ref()
-// const musicStore = useMusicStore()
-// const { volume } = storeToRefs(musicStore)
-const volume = ref(50)
 
+const musicStore = useMusicStore()
+const { volume } = storeToRefs(musicStore)
+const { setVolume } = musicStore
+
+function onVolumeChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target?.value) {
+    setVolume(Number(target?.value))
+  }
+}
+
+const isMuted = ref()
 const toggleMute = () => {
   isMuted.value = ! isMuted.value
 }

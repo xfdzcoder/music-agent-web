@@ -13,7 +13,7 @@
           </div>
           <div v-else class="playlist-items">
             <div
-                v-for="(song, index) in Array(15).fill(currentPlaylist[0]).map((song, i) => ({ ...song, index: i }))"
+                v-for="(song, index) in currentPlaylist"
                 :key="index"
                 class="playlist-item"
                 :class="{ 'active': index === currentMusicIndex }"
@@ -35,18 +35,26 @@
 
 import { ref } from "vue"
 import { useMusicStore } from "@/stores/music.ts"
+import { storeToRefs } from "pinia"
+
+const emits = defineEmits<{
+  "changePlaylistVisible": [playlistVisible: boolean]
+}>()
 
 const musicStore = useMusicStore()
-const { currentPlaylist, currentMusicIndex } = musicStore
+const { currentPlaylist, currentMusicIndex } = storeToRefs(musicStore)
+const { setCurrentIndex } = musicStore
 
 function playSong(index: number) {
   console.log(index)
+  setCurrentIndex(index)
 }
 
 
 const showPlaylist = ref(false)
 function togglePlaylist() {
   showPlaylist.value = !showPlaylist.value
+  emits('changePlaylistVisible', showPlaylist.value)
 }
 
 </script>
