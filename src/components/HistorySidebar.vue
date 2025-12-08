@@ -41,7 +41,7 @@
                     role="listitem"
                 >
                   <div class="item-bubble">
-                    <div class="item-title" :title="item.name">{{ item.name || '未命名会话' }}</div>
+                    <div class="item-title" :title="item.name">{{ item.name || "未命名会话" }}</div>
                     <div class="item-time">{{ formatTime(item.updated_at) }}</div>
                   </div>
                 </div>
@@ -55,15 +55,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useColor } from '@/stores/color' // 若不存在，请替换为你的主题获取方法
-import { storeToRefs } from 'pinia'
-import { adjustBrightness } from '@/utils/color'
+import { ref, computed, onMounted, watch } from "vue"
+import { useColor } from "@/stores/color" // 若不存在，请替换为你的主题获取方法
+import { storeToRefs } from "pinia"
+import { adjustBrightness } from "@/utils/color"
 import { useChatStore } from "@/stores/chat.ts"
 import { formatTime } from "@/utils/date.ts" // 请确保存在；若不存在可替换实现
 
 // props / emits
 const props = defineProps<{ isOpen: boolean }>()
+const emits = defineEmits<{
+  "selectHistory": [threadId: string]
+}>()
 
 // refs
 const overlayRef = ref<HTMLElement | null>(null)
@@ -80,28 +83,47 @@ const { color } = storeToRefs(colorStore)
 
 const chatStore = useChatStore()
 const { histories } = storeToRefs(chatStore)
-const { loadHistories, loadHistoryChat } = chatStore
+const {
+  loadHistories,
+  loadHistoryChat
+} = chatStore
 
 // 颜色辅助函数
 function hexToRgb(hex: string) {
-  const h = hex.replace('#', '')
+  const h = hex.replace("#", "")
   const r = parseInt(h.substring(0, 2), 16)
   const g = parseInt(h.substring(2, 4), 16)
   const b = parseInt(h.substring(4, 6), 16)
-  return { r, g, b }
+  return {
+    r,
+    g,
+    b
+  }
 }
-function clamp(n: number, lo = 0, hi = 255) { return Math.max(lo, Math.min(hi, Math.round(n))) }
+
+function clamp(n: number, lo = 0, hi = 255) {
+  return Math.max(lo, Math.min(hi, Math.round(n)))
+}
+
 function adjustHex(hex: string, amount: number) {
-  const { r, g, b } = hexToRgb(hex)
-  return '#' + [clamp(r + amount).toString(16).padStart(2, '0'),
-    clamp(g + amount).toString(16).padStart(2, '0'),
-    clamp(b + amount).toString(16).padStart(2, '0')].join('')
+  const {
+    r,
+    g,
+    b
+  } = hexToRgb(hex)
+  return "#" + [clamp(r + amount).toString(16).padStart(2, "0"),
+    clamp(g + amount).toString(16).padStart(2, "0"),
+    clamp(b + amount).toString(16).padStart(2, "0")].join("")
 }
 
 // 计算样式变量（绑定到 container）
 const mainRgb = (() => {
-  const { r, g, b } = hexToRgb(color.value)
-  return `${r}, ${g}, ${b}`
+  const {
+    r,
+    g,
+    b
+  } = hexToRgb(color.value)
+  return `${ r }, ${ g }, ${ b }`
 })()
 
 const containerStyle = computed(() => {
@@ -109,18 +131,21 @@ const containerStyle = computed(() => {
   const dark = adjustBrightness ? adjustBrightness(color.value, -30) : adjustHex(color.value, -30)
   // 背景渐变用于 item（气泡）；container 本身透明
   return {
-    '--main-rgb': mainRgb,
-    '--theme-color': color.value,
-    '--theme-light': light,
-    '--theme-dark': dark,
-    '--item-hover-bg': `linear-gradient(135deg, ${color.value}, ${dark})`,
-    '--item-active-bg': `linear-gradient(135deg, ${dark}, ${color.value})`
+    "--main-rgb": mainRgb,
+    "--theme-color": color.value,
+    "--theme-light": light,
+    "--theme-dark": dark,
+    "--item-hover-bg": `linear-gradient(135deg, ${ color.value }, ${ dark })`,
+    "--item-active-bg": `linear-gradient(135deg, ${ dark }, ${ color.value })`
   }
 })
 
 function select(threadId: string) {
   currentThreadId.value = threadId
   loadHistoryChat(threadId)
+      .then(() => {
+        emits('selectHistory', threadId)
+      })
 }
 
 // 生命周期
@@ -209,9 +234,18 @@ watch(() => props.isOpen, (val) => {
 }
 
 /* 隐藏或细化滚动条 */
-.history-list::-webkit-scrollbar { width: 6px; }
-.history-list::-webkit-scrollbar-track { background: transparent; }
-.history-list::-webkit-scrollbar-thumb { background: rgba(var(--main-rgb), 0.12); border-radius: 3px; }
+.history-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--main-rgb), 0.12);
+  border-radius: 3px;
+}
 
 /* loading / empty */
 .history-empty {
@@ -220,15 +254,17 @@ watch(() => props.isOpen, (val) => {
   align-items: center;
   justify-content: center;
   padding: 28px 12px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.85);
   text-align: center;
 }
+
 .empty-icon {
   font-size: 48px;
   margin-bottom: 12px;
   filter: drop-shadow(0 8px 20px rgba(var(--main-rgb), 0.25));
   animation: float 3s ease-in-out infinite;
 }
+
 .empty-title {
   font-size: 18px;
   margin: 6px 0 4px;
@@ -237,14 +273,30 @@ watch(() => props.isOpen, (val) => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.empty-desc { font-size: 13px; margin: 0; color: rgba(255,255,255,0.75); }
 
-@keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
+.empty-desc {
+  font-size: 13px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0)
+  }
+  50% {
+    transform: translateY(-8px)
+  }
+}
 
 /* -----------------------
    history-item（气泡卡片）—— 仿 MessageItem 的风格
    ----------------------- */
-.history-items { display: flex; flex-direction: column; gap: 10px; }
+.history-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
 /* 每个条目容器（透明背景，内层 bubble 展示渐变） */
 .history-item {
@@ -266,10 +318,10 @@ watch(() => props.isOpen, (val) => {
   min-width: 0;
   width: 100%;
   /* 默认气泡为半透明玻璃（保持整体透明但有层次） */
-  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: rgba(255,255,255,0.95);
+  color: rgba(255, 255, 255, 0.95);
   box-shadow: none; /* 无阴影（按要求） */
   cursor: pointer;
   transform-origin: left center;
@@ -285,9 +337,10 @@ watch(() => props.isOpen, (val) => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .item-time {
   font-size: 12px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   opacity: 0.95;
 }
 
@@ -310,16 +363,40 @@ watch(() => props.isOpen, (val) => {
 }
 
 /* 轻微入场动画 */
-.history-item { opacity: 0; animation: slideIn 0.28s ease forwards; }
-.history-item:nth-child(1){ animation-delay: 0.02s }
-.history-item:nth-child(2){ animation-delay: 0.04s }
-.history-item:nth-child(3){ animation-delay: 0.06s }
-.history-item:nth-child(4){ animation-delay: 0.08s }
-.history-item:nth-child(5){ animation-delay: 0.10s }
+.history-item {
+  opacity: 0;
+  animation: slideIn 0.28s ease forwards;
+}
+
+.history-item:nth-child(1) {
+  animation-delay: 0.02s
+}
+
+.history-item:nth-child(2) {
+  animation-delay: 0.04s
+}
+
+.history-item:nth-child(3) {
+  animation-delay: 0.06s
+}
+
+.history-item:nth-child(4) {
+  animation-delay: 0.08s
+}
+
+.history-item:nth-child(5) {
+  animation-delay: 0.10s
+}
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 小屏 / 自适应微调 */
@@ -336,5 +413,8 @@ watch(() => props.isOpen, (val) => {
 .dialog-fade-enter-active, .dialog-fade-leave-active {
   transition: opacity 0.25s ease;
 }
-.dialog-fade-enter-from, .dialog-fade-leave-to { opacity: 0; }
+
+.dialog-fade-enter-from, .dialog-fade-leave-to {
+  opacity: 0;
+}
 </style>

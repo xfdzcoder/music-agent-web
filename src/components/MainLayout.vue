@@ -10,7 +10,7 @@
 
     <!-- 主内容 -->
     <div class="main-content">
-      <router-view />
+      <router-view/>
     </div>
 
     <!-- 播放器 -->
@@ -34,7 +34,6 @@
         :is-open="chatDialogOpen"
         @close="chatDialogOpen = false"
         @update:is-open="chatDialogOpen = $event"
-        ref="chatDialogRef"
         class="overlay-dialog"
     />
 
@@ -42,72 +41,56 @@
     <HistorySidebar
         v-if="isHistoryOpen"
         :is-open="isHistoryOpen"
-        @select="handleSelectHistory"
+        @select-history="handleSelectHistory"
         class="overlay-dialog"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from "vue"
+import { useRouter } from "vue-router"
 
-import Sidebar from '@/components/Sidebar.vue'
-import PlayerBar from '@/components/PlayerBar.vue'
-import FloatBall from '@/components/FloatBall.vue'
-import ChatDialog from '@/components/ChatDialog.vue'
-import HistorySidebar from '@/components/HistorySidebar.vue'
+import Sidebar from "@/components/Sidebar.vue"
+import PlayerBar from "@/components/PlayerBar.vue"
+import FloatBall from "@/components/FloatBall.vue"
+import ChatDialog from "@/components/ChatDialog.vue"
+import HistorySidebar from "@/components/HistorySidebar.vue"
 
 const router = useRouter()
 
-// UI 状态
 const sidebarCollapsed = ref(false)
-const currentMenu = ref('now-playing')
 const playerBarVisible = ref(false)
-const showFloatBall = ref(true)
 
-// 两个浮层互斥
-const chatDialogOpen = ref(false)
-const isHistoryOpen = ref(false)
+const currentMenu = ref("now-playing")
 
-const chatDialogRef = ref<InstanceType<typeof ChatDialog>>()
-
-// 切换菜单
 function handleMenuChange(menu: string) {
   currentMenu.value = menu
   router.push({ name: menu })
 }
 
-// ======================================
-// 互斥逻辑
-// ======================================
+const chatDialogOpen = ref(false)
+const isHistoryOpen = ref(false)
+
 function handleOpenChat() {
   if (isHistoryOpen.value) isHistoryOpen.value = false
-  chatDialogOpen.value = !chatDialogOpen.value
+  chatDialogOpen.value = ! chatDialogOpen.value
 }
 
 function handleOpenHistory() {
-  console.log('isHistoryOpen', isHistoryOpen.value)
   if (chatDialogOpen.value) chatDialogOpen.value = false
-  isHistoryOpen.value = !isHistoryOpen.value
-  console.log('isHistoryOpen', isHistoryOpen.value)
+  isHistoryOpen.value = ! isHistoryOpen.value
 }
 
-function handleSelectHistory(threadId: string) {
-  // 切换会话给 ChatDialog
-  console.log('切换到历史线程:', threadId)
-
-  // 显示聊天窗口
+function handleSelectHistory() {
   chatDialogOpen.value = true
   isHistoryOpen.value = false
-
-  nextTick(() => {
-    // chatDialogRef.value?.focus()
-  })
 }
 
+const showFloatBall = ref(true)
+
 function onPlaylistVisibleChange(playlistVisible: boolean) {
-  showFloatBall.value = !playlistVisible
+  showFloatBall.value = ! playlistVisible
 }
 </script>
 
