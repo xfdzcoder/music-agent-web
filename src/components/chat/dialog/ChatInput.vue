@@ -30,10 +30,13 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { useColor } from '@/stores/color'
+import { useColor } from '@/stores/color.ts'
 import { storeToRefs } from 'pinia'
-import { adjustBrightness } from '@/utils/color'
+import { adjustBrightness } from '@/utils/color.ts'
 
+defineOptions({
+  name: "ChatInput"
+})
 const props = defineProps<{ isSending?: boolean; disabled?: boolean }>()
 const emit = defineEmits<{(e: 'send', content: string): void}>()
 
@@ -50,8 +53,8 @@ const inputStyle = computed(() => {
   const highlightColor = adjustBrightness(mainColor, 140)
 
   const hexToRgb = (hex: string) => {
-    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0,0,0'
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? `${parseInt(result[1] as string, 16)}, ${parseInt(result[2] as string, 16)}, ${parseInt(result[3] as string, 16)}` : '0,0,0'
   }
 
   const mainRgb = hexToRgb(mainColor)

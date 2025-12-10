@@ -33,12 +33,11 @@
         v-if="chatDialogOpen"
         :is-open="chatDialogOpen"
         @close="chatDialogOpen = false"
-        @update:is-open="chatDialogOpen = $event"
         class="overlay-dialog"
     />
 
-    <!-- HistorySidebar（互斥显示） -->
-    <HistorySidebar
+    <!-- HistoryDialog（互斥显示） -->
+    <HistoryDialog
         v-if="isHistoryOpen"
         :is-open="isHistoryOpen"
         @select-history="handleSelectHistory"
@@ -50,12 +49,15 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { useRouter } from "vue-router"
+import Sidebar from "@/components/layout/Sidebar.vue"
+import PlayerBar from "@/components/playbar/PlayerBar.vue"
+import FloatBall from "@/components/chat/FloatBall.vue"
+import ChatDialog from "@/components/chat/dialog/ChatDialog.vue"
+import HistoryDialog from "@/components/chat/dialog/HistoryDialog.vue"
 
-import Sidebar from "@/components/Sidebar.vue"
-import PlayerBar from "@/components/PlayerBar.vue"
-import FloatBall from "@/components/FloatBall.vue"
-import ChatDialog from "@/components/ChatDialog.vue"
-import HistorySidebar from "@/components/HistorySidebar.vue"
+defineOptions({
+  name: "MainLayout"
+})
 
 const router = useRouter()
 
@@ -108,7 +110,7 @@ function onPlaylistVisibleChange(playlistVisible: boolean) {
   overflow: hidden;
 }
 
-/* ChatDialog & HistorySidebar 共用的定位 */
+/* ChatDialog & HistoryDialog 共用的定位 */
 .overlay-dialog {
   position: absolute;
   right: 100px; /* 根据 FloatBall 位置调整 */

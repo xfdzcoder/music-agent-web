@@ -44,6 +44,9 @@ interface MenuItem {
   icon: string
 }
 
+defineOptions({
+  name: "Sidebar"
+})
 defineProps<{
   currentMenu: string
 }>()

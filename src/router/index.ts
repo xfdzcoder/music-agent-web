@@ -1,5 +1,5 @@
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-router"
-import MainLayout from '@/components/MainLayout.vue'
+import MainLayout from '@/components/layout/MainLayout.vue'
 import NowPlaying from '@/views/NowPlaying.vue'
 
 const routes: RouteRecordRaw[] = [

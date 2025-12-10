@@ -50,10 +50,14 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { useChatStore } from '@/stores/chat'
+import { useChatStore } from '@/stores/chat.ts'
 import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
 import { adjustBrightness } from "@/utils/color.ts"
+
+defineOptions({
+  name: "FloatBall"
+})
 
 defineProps<{
   menuContentVisible: boolean

@@ -28,6 +28,7 @@
             <ChatInput
                 :is-sending="chatStore.isSending"
                 @send="handleSend"
+                ref="chatInputRef"
             />
           </div>
 
@@ -39,25 +40,27 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from "vue"
-import { useChatStore } from "@/stores/chat"
-import { useColor } from "@/stores/color"
+import { useChatStore } from "@/stores/chat.ts"
+import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
-import { adjustBrightness } from "@/utils/color"
-import MessageItem from "@/components/MessageItem.vue"
-import ChatInput from "@/components/ChatInput.vue"
+import { adjustBrightness } from "@/utils/color.ts"
+import MessageItem from "@/components/chat/dialog/MessageItem.vue"
+import ChatInput from "@/components/chat/dialog/ChatInput.vue"
 
-// Props & Emits
+defineOptions({
+  name: "ChatDialog"
+})
 const props = defineProps<{ isOpen : boolean }>()
-const emit = defineEmits<{ close : [], "update:isOpen" : [value : boolean] }>()
+
+const chatInputRef = ref<InstanceType<typeof ChatInput>>()
+watch(() => props.isOpen, () => {
+  chatInputRef.value?.focus()
+})
 
 // Store
 const chatStore = useChatStore()
 const colorStore = useColor()
 const { color } = storeToRefs(colorStore)
-
-// State
-const messagesContainer = ref<HTMLDivElement>()
-const dialogContainer = ref<HTMLDivElement>()
 
 // --- 1. 计算空状态的样式 (仅父组件使用) ---
 const emptyStateStyle = computed(() => {
@@ -66,7 +69,7 @@ const emptyStateStyle = computed(() => {
   // 将 Hex 转 RGB 用于阴影
   const hexToRgb = (hex : string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    return result ? `${ parseInt(result[1], 16) }, ${ parseInt(result[2], 16) }, ${ parseInt(result[3], 16) }` : "255,255,255"
+    return result ? `${ parseInt(result[1] as string, 16) }, ${ parseInt(result[2] as string, 16) }, ${ parseInt(result[3] as string, 16) }` : "255,255,255"
   }
 
   return {
@@ -75,6 +78,10 @@ const emptyStateStyle = computed(() => {
     "--empty-text-color": lightColor
   }
 })
+
+// State
+const messagesContainer = ref<HTMLDivElement>()
+const dialogContainer = ref<HTMLDivElement>()
 
 // --- 逻辑部分 ---
 function handleClickOutside(event : MouseEvent) {

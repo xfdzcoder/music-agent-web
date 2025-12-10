@@ -27,11 +27,15 @@
 </template>
 
 <script setup lang="ts">
-import { adjustBrightness } from "@/utils/color.ts"
+import { adjustBrightness, hexToRgb } from "@/utils/color.ts"
 import { computed, ref } from "vue"
 import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
 import { useMusicStore } from "@/stores/music.ts"
+
+defineOptions({
+  name: "Volume"
+})
 
 const showVolumeSlider = ref(false)
 
@@ -54,14 +58,6 @@ const toggleMute = () => {
 
 const colorStore = useColor()
 const { color } = storeToRefs(colorStore)
-
-function hexToRgb(hex: string) {
-  const h = (hex || "#667eea").replace("#", "")
-  const r = parseInt(h.substring(0, 2), 16) || 0
-  const g = parseInt(h.substring(2, 4), 16) || 0
-  const b = parseInt(h.substring(4, 6), 16) || 0
-  return { r, g, b }
-}
 
 const style = computed(() => {
   const mainColor = color?.value

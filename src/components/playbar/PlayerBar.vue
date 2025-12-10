@@ -43,14 +43,17 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue"
-import { useColor } from "@/stores/color"
+import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
-import { adjustBrightness } from "@/utils/color"
+import { adjustBrightness } from "@/utils/color.ts"
 import { useMusicStore } from "@/stores/music.ts"
-import Volume from "@/components/Volume.vue"
-import Playlist from "@/components/Playlist.vue"
-import PlayControl from "@/components/PlayControl.vue"
+import Volume from "@/components/playbar/Volume.vue"
+import Playlist from "@/components/playbar/Playlist.vue"
+import PlayControl from "@/components/playbar/PlayControl.vue"
 
+defineOptions({
+  name: "PlayerBar"
+})
 defineProps<{
   visible: boolean
 }>()

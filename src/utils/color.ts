@@ -1,7 +1,7 @@
 // ================= 工具函数：颜色变暗 =================
 // 将 Hex 颜色变暗百分之多少 (amount: 0 ~ 100)
 // 例如：adjustBrightness('#ffffff', -50) 变暗50%
-export const adjustBrightness = (hex : string, percent : number) => {
+export function adjustBrightness(hex: string, percent: number) {
   // 移除 # 号
   hex = hex.replace(/^\s*#|\s*$/g, "")
   // 处理简写 hex (e.g. #333)
@@ -23,4 +23,12 @@ export const adjustBrightness = (hex : string, percent : number) => {
   // 转回 Hex
   const result = ((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)
   return `#${ result }`
+}
+
+export function hexToRgb(hex: string) {
+  const h = hex.replace("#", "")
+  const r = parseInt(h.substring(0, 2), 16) || 0
+  const g = parseInt(h.substring(2, 4), 16) || 0
+  const b = parseInt(h.substring(4, 6), 16) || 0
+  return { r, g, b }
 }

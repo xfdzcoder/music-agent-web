@@ -22,6 +22,10 @@ import { computed } from "vue"
 import { useMusicStore } from "@/stores/music.ts"
 import { storeToRefs } from "pinia"
 
+defineOptions({
+  name: "PlayControl"
+})
+
 const musicStore = useMusicStore()
 const { isPlaying, playMode } = storeToRefs(musicStore)
 const { togglePlay, previous, next, togglePlayMode } = musicStore

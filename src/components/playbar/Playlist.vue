@@ -37,6 +37,9 @@ import { ref } from "vue"
 import { useMusicStore } from "@/stores/music.ts"
 import { storeToRefs } from "pinia"
 
+defineOptions({
+  name: "Playlist"
+})
 const emits = defineEmits<{
   "changePlaylistVisible": [playlistVisible: boolean]
 }>()

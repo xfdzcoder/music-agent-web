@@ -17,9 +17,9 @@
 import { computed } from 'vue'
 import MarkdownIt from 'markdown-it'
 import type { Message } from '@/api/chat/types.ts'
-import { useColor } from '@/stores/color'
+import { useColor } from '@/stores/color.ts'
 import { storeToRefs } from 'pinia'
-import { adjustBrightness } from '@/utils/color'
+import { adjustBrightness, hexToRgb } from "@/utils/color.ts"
 
 const props = defineProps<{ message: Message }>()
 
@@ -32,14 +32,7 @@ const itemStyle = computed(() => {
   const darkColor = adjustBrightness(mainColor, -40)
   const highlightColor = adjustBrightness(mainColor, 140) // 极亮色，用于深底文字
 
-  // Hex 转 RGB
-  const hexToRgb = (hex: string) => {
-    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0,0,0'
-  }
-
   const mainRgb = hexToRgb(mainColor)
-  const darkRgb = hexToRgb(darkColor)
 
   return {
     // User: 渐变

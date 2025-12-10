@@ -55,12 +55,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
-import { useColor } from "@/stores/color" // 若不存在，请替换为你的主题获取方法
+import { computed, onMounted, ref, watch } from "vue"
+import { useColor } from "@/stores/color.ts"
 import { storeToRefs } from "pinia"
-import { adjustBrightness } from "@/utils/color"
+import { adjustBrightness, hexToRgb } from "@/utils/color.ts"
 import { useChatStore } from "@/stores/chat.ts"
-import { formatTime } from "@/utils/date.ts" // 请确保存在；若不存在可替换实现
+import { formatTime } from "@/utils/date.ts"
+
+defineOptions({
+  name: "HistoryDialog"
+})
 
 // props / emits
 const props = defineProps<{ isOpen: boolean }>()
@@ -74,7 +78,6 @@ const containerRef = ref<HTMLElement | null>(null)
 const listRef = ref<HTMLElement | null>(null)
 
 // 内部状态（组件自己维护）
-// const histories = ref<HistoryItem[]>([])
 const loading = ref(false)
 const currentThreadId = ref<string | null>(null)
 
@@ -83,34 +86,17 @@ const { color } = storeToRefs(colorStore)
 
 const chatStore = useChatStore()
 const { histories } = storeToRefs(chatStore)
-const {
-  loadHistories,
-  loadHistoryChat
-} = chatStore
+const { loadHistories, loadHistoryChat } = chatStore
 
 // 颜色辅助函数
-function hexToRgb(hex: string) {
-  const h = hex.replace("#", "")
-  const r = parseInt(h.substring(0, 2), 16)
-  const g = parseInt(h.substring(2, 4), 16)
-  const b = parseInt(h.substring(4, 6), 16)
-  return {
-    r,
-    g,
-    b
-  }
-}
+
 
 function clamp(n: number, lo = 0, hi = 255) {
   return Math.max(lo, Math.min(hi, Math.round(n)))
 }
 
 function adjustHex(hex: string, amount: number) {
-  const {
-    r,
-    g,
-    b
-  } = hexToRgb(hex)
+  const { r, g, b } = hexToRgb(hex)
   return "#" + [clamp(r + amount).toString(16).padStart(2, "0"),
     clamp(g + amount).toString(16).padStart(2, "0"),
     clamp(b + amount).toString(16).padStart(2, "0")].join("")
@@ -118,11 +104,7 @@ function adjustHex(hex: string, amount: number) {
 
 // 计算样式变量（绑定到 container）
 const mainRgb = (() => {
-  const {
-    r,
-    g,
-    b
-  } = hexToRgb(color.value)
+  const { r, g, b } = hexToRgb(color.value)
   return `${ r }, ${ g }, ${ b }`
 })()
 
@@ -144,7 +126,7 @@ function select(threadId: string) {
   currentThreadId.value = threadId
   loadHistoryChat(threadId)
       .then(() => {
-        emits('selectHistory', threadId)
+        emits("selectHistory", threadId)
       })
 }
 
